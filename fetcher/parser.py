@@ -3,6 +3,17 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 from course.course import Course, Index, CourseTime
 
+def parse_programmes(raw_html):
+    soup = BeautifulSoup(raw_html)
+    option_list = soup.select('select[name="r_course_yr"] option[value*=";"]')
+
+    return list(map((lambda x: (x.text.strip(), x['value'])), option_list))
+
+def parse_selected_semester(raw_html):
+    soup = BeautifulSoup(raw_html)
+    selected = soup.select('select[name="acadsem"] option[selected]')[0]
+    return selected.text.strip(), selected['value']
+
 def parse(raw_html):
     soup = BeautifulSoup(raw_html)
 

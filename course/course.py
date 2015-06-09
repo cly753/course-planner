@@ -1,4 +1,6 @@
 from enum import Enum
+import json
+
 
 class Type(Enum):
     LEC = 1
@@ -77,3 +79,6 @@ class Course:
             ','.join(self.prerequisite),
             '\n'.join(list(map((lambda x: str(x)), self.index)))
         )
+
+    def to_JSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

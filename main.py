@@ -1,7 +1,7 @@
-import fetcher.parser
-import fetcher.raw_fetcher
+from urllib.parse import urlencode
 
 from pprint import pprint, pformat
+from fetcher.raw_fetcher import fetch_courses, fetch_programmes, fetch_selected_semester
 from generator.generator import generate
 from local.saver import save
 
@@ -9,8 +9,8 @@ from local.saver import save
 def load_conf(addr = ''):
 
     conf = {
-        'course_url' : 'https://wis.ntu.edu.sg/webexe/owa/AUS_SCHEDULE.main_display1'
-        # 'course_url' : 'https://wis.ntu.edu.sg/webexe/owa/aus_schedule.main'
+        'course' : 'https://wis.ntu.edu.sg/webexe/owa/AUS_SCHEDULE.main_display1',
+        'programme' : 'https://wis.ntu.edu.sg/webexe/owa/aus_schedule.main'
     }
 
     return conf
@@ -18,20 +18,18 @@ def load_conf(addr = ''):
 if __name__ == '__main__':
 
     conf = load_conf()
-    raw_html = fetcher.raw_fetcher.fetch(conf['course_url'])
-    courses = fetcher.parser.parse(raw_html)
+    selected_semester = fetch_selected_semester(conf['programme'])
+    programmes = fetch_programmes(conf['programme'])
+    courses = fetch_courses(conf['course'], semester=selected_semester[1])
 
-    course_string = '\n\nCourse: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n'.join(
-        map((lambda x: str(x)), courses)
-    )
+    course_string = '\n\nCourse: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n'.join( map((lambda x: str(x)), courses) )
     print(course_string)
-    save(course_string, 'data.txt')
 
-    result = []
     for i in range(1, len(courses) + 1):
-        print('generating {} courses...'.format(i))
-        result.extend(generate(courses, i))
-    pprint(result)
+        print('generating {} courses... '.format(i), end='')
+        result = generate(courses, i)
+        print('{} results.'.format(len(result)))
 
-    result = generate(courses, 4)
-    save(pformat(result, 4), 'plan.txt')
+        if len(result) == 0:
+            print('no more plan...')
+            break

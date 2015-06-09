@@ -4,6 +4,8 @@ import urllib.request
 import ssl
 import socket
 import http.client
+from fetcher import parser
+from fetcher.parser import parse_programmes, parse_selected_semester
 
 
 class TLS1Connection(http.client.HTTPSConnection):
@@ -36,21 +38,19 @@ class TLS1Handler(urllib.request.HTTPSHandler):
     def https_open(self, req):
         return self.do_open(TLS1Connection, req)
 
-
-# Override default handler
-
-def fetch(url):
-    # print('fetching from ' + url)
-
+def fetch_post(url, data):
     urllib.request.install_opener(urllib.request.build_opener(TLS1Handler()))
-    req = urllib.request.Request(url, urlencode(get_request()).encode('utf-8'))
+    req = urllib.request.Request(url, data)
     response = urllib.request.urlopen(req)
 
-    text = response.read()
-    # print(text)
+    return response.read()
 
-    return text
+def fetch_get(url):
+    urllib.request.install_opener(urllib.request.build_opener(TLS1Handler()))
+    req = urllib.request.Request(url)
+    response = urllib.request.urlopen(req)
 
+    return response.read()
 
 def get_request(semester='2015;1', course_year='CE;;4;F'):
     return {
@@ -72,3 +72,15 @@ def get_request(semester='2015;1', course_year='CE;;4;F'):
     #     'acadsem':'2015;1',
     #     'staff_access':'false'
     # }
+
+def fetch_courses(url, semester='2015;1', course_year='CE;;4;F'):
+    raw_html = fetch_post(url, urlencode(get_request(semester, course_year)).encode('utf-8'))
+    courses = parser.parse(raw_html)
+
+    return courses
+
+def fetch_programmes(url):
+    return parse_programmes(fetch_get(url))
+
+def fetch_selected_semester(url):
+    return parse_selected_semester(fetch_get(url))
