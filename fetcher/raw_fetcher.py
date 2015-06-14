@@ -1,3 +1,4 @@
+from pprint import pprint
 from urllib.parse import urlencode
 import urllib.request
 
@@ -52,13 +53,13 @@ def fetch_get(url):
 
     return response.read()
 
-def get_request(semester='2015;1', course_year='CE;;4;F'):
+def get_request(semester='2015;1', course_year='CE;;4;F', boption='x'):
     return {
         'acadsem': semester,
         'r_course_yr': course_year,
         'r_subj_code': 'Enter Keywords or Course Code',
         'r_search_type': 'F',
-        'boption': 'CLoad',
+        'boption': boption,
         'acadsem': semester,
         'staff_access': 'false'
     }
@@ -73,14 +74,39 @@ def get_request(semester='2015;1', course_year='CE;;4;F'):
     #     'staff_access':'false'
     # }
 
-def fetch_courses(url, semester='2015;1', course_year='CE;;4;F'):
-    raw_html = fetch_post(url, urlencode(get_request(semester, course_year)).encode('utf-8'))
-    courses = parser.parse(raw_html)
+def fetch_all_courses(conf):
+    semester = fetch_selected_semester(conf['semester'])
+    programmes = fetch_programmes(conf['programme'])
 
+    print('semester: {}', semester)
+    print('programmes... total: {}', len(programmes))
+
+    all_courses = []
+    for pro in programmes:
+        courses = fetch_courses(conf['course'], semester[1], pro[1])
+        for c in courses:
+            pprint(c.to_json())
+        all_courses.extend(courses)
+
+    return all_courses
+
+def fetch_courses(url, semester='2015;1', course_year='CE;;4;F'):
+    print('fetch_courses... url: {}, semester: {}, course_year: {}, data:'.format(url, semester, course_year))
+    data = get_request(semester, course_year, 'CLoad')
+    pprint(data)
+    raw_html = fetch_post(url, urlencode(data).encode('utf-8'))
+    print('response: {}', raw_html)
+
+    courses = parser.parse(raw_html)
     return courses
 
-def fetch_programmes(url):
-    return parse_programmes(fetch_get(url))
+def fetch_programmes(url, semester='2015;1'):
+    print('fetch_programmes... url: {}, semester: {}, data:'.format(url, semester))
+    data = get_request(semester, '', 'x')
+    pprint(data)
+    raw_html = fetch_post(url, urlencode(data).encode('utf-8'))
+    print('response: {}', raw_html)
+    return parse_programmes(raw_html)
 
 def fetch_selected_semester(url):
     return parse_selected_semester(fetch_get(url))

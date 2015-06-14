@@ -3,16 +3,20 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 from course.course import Course, Index, CourseTime
 
+
 def parse_programmes(raw_html):
     soup = BeautifulSoup(raw_html)
     option_list = soup.select('select[name="r_course_yr"] option[value*=";"]')
 
     return list(map((lambda x: (x.text.strip(), x['value'])), option_list))
 
+
 def parse_selected_semester(raw_html):
     soup = BeautifulSoup(raw_html)
-    selected = soup.select('select[name="acadsem"] option[selected]')[0]
+    all_semester = soup.select('select[name="acadsem"] option')
+    selected = all_semester[0]
     return selected.text.strip(), selected['value']
+
 
 def parse(raw_html):
     soup = BeautifulSoup(raw_html)
@@ -25,6 +29,7 @@ def parse(raw_html):
         courses.append(parse_each(courses_raw[i], courses_raw[i + 1]))
         # break
     return courses
+
 
 def parse_each(raw_title, raw_index):
     # print("%%% raw_index:")
@@ -62,9 +67,10 @@ def parse_title(raw_title):
 
 
 def parse_index(raw_index):
-    # print('hhhhhhhhhhhhhhhhhhhhhhhh')
-    # pprint(raw_index)
     raw_rows = raw_index.select('tr[bgcolor^="#"]')
+
+    if len(raw_rows) == 0:
+        return []
 
     all_index = []
     one_index = []
@@ -82,7 +88,7 @@ def parse_index(raw_index):
 
 def parse_each_index(raw):
     index = Index()
-    index.code = raw[0][0]
+    index.index = raw[0][0]
     index.course_time = list(map((lambda x: parse_each_time(x[1:])), raw))
 
     return index
@@ -90,6 +96,7 @@ def parse_each_index(raw):
 
 def parse_each_time(raw):
     DAY = {
+        'NONE': 0,
         'MON': 1,
         'TUE': 2,
         'WED': 3,
@@ -99,15 +106,15 @@ def parse_each_time(raw):
         'SUN': 7
     }
     course_time = CourseTime()
-    course_time.type = raw[0]
-    course_time.group = raw[1]
-    course_time.day = DAY[raw[2]]
-    course_time.time = raw[3].split('-')
-    course_time.venue = raw[4]
+    course_time.type = raw[0] if not raw[0] == '\xa0' else 'NoType'
+    course_time.group = raw[1] if not raw[1] == '\xa0' else 'NoGroup'
+    course_time.day = DAY[raw[2]] if not raw[2] == '\xa0' else 0
+    course_time.time = raw[3].split('-') if not raw[3] == '\xa0' else ['0000', '0000']
+    course_time.venue = raw[4] if not raw[4] == '\xa0' else 'NoVenue'
 
     course_time.week = list(map(lambda x: int(x), filter((lambda x: not x == ''), re.split('[\D]+', raw[5]))))
     if len(course_time.week) == 0:
-        course_time.week = range(1, 14)
+        course_time.week = list(range(1, 14))
 
     # print('%%% week %%%')
     # pprint(course_time.week)
