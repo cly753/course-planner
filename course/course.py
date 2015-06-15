@@ -10,7 +10,6 @@ class Type(Enum):
 class CourseTime:
 
     def __init__(self):
-
         self.type = ''
         self.group = ''
         self.day = -1

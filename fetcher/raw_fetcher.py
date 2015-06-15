@@ -82,7 +82,9 @@ def fetch_all_courses(conf):
     print('programmes... total: {}', len(programmes))
 
     all_courses = []
-    for pro in programmes:
+    for i in range(0, len(programmes)):
+        print('fetching {}/{}'.format(i + 1, len(programmes)))
+        pro = programmes[i]
         courses = fetch_courses(conf['course'], semester[1], pro[1])
         for c in courses:
             pprint(c.to_json())

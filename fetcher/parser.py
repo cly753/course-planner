@@ -55,7 +55,7 @@ def parse_title(raw_title):
     # print('%%% first row:')
     # pprint(first_row)
 
-    course.course_code = first_row[0]
+    course.course_code = first_row[0].upper()
     course.course_title = first_row[1]
     course.au = int(float(first_row[2].strip().split(' ')[0]))
 
@@ -112,9 +112,23 @@ def parse_each_time(raw):
     course_time.time = raw[3].split('-') if not raw[3] == '\xa0' else ['0000', '0000']
     course_time.venue = raw[4] if not raw[4] == '\xa0' else 'NoVenue'
 
-    course_time.week = list(map(lambda x: int(x), filter((lambda x: not x == ''), re.split('[\D]+', raw[5]))))
-    if len(course_time.week) == 0:
+    if len(raw[5]) < 3:
         course_time.week = list(range(1, 14))
+    else:
+        try:
+            course_time.week = []
+            temp_week = list(filter((lambda x: not x == ''), re.split('[^0-9\-]+', raw[5])))
+            for w in temp_week:
+                if '-' in w:
+                    ab = w.split('-')
+                    a = int(ab[0])
+                    b = int(ab[1])
+                    course_time.week.extend(list(range(a, b + 1)))
+                else:
+                    course_time.week.append(int(w))
+        except ValueError as e:
+            course_time.week = []
+            print('Exception when parsing week: "{}", treated as []...details:\n{}'.format(raw[5], str(e)))
 
     # print('%%% week %%%')
     # pprint(course_time.week)
