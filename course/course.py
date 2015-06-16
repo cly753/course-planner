@@ -1,12 +1,6 @@
 from enum import Enum
 import json
 
-
-class Type(Enum):
-    LEC = 1
-    TUT = 2
-    LAB = 3
-
 class CourseTime:
 
     def __init__(self):

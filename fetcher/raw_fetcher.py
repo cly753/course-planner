@@ -87,6 +87,7 @@ def fetch_all_courses(conf):
         pro = programmes[i]
         courses = fetch_courses(conf['course'], semester[1], pro[1])
         for c in courses:
+            # if c.course_code == 'HW0310':
             pprint(c.to_json())
         all_courses.extend(courses)
 

@@ -1,9 +1,5 @@
-import re
-from urllib.parse import urlencode
-
+from functools import reduce
 from pprint import pprint, pformat
-from pymongo import MongoClient
-from course.course import course_from_json
 from fetcher.raw_fetcher import fetch_courses, fetch_programmes, fetch_selected_semester
 from generator.generator import generate
 from local.databasehelper import refresh_course, find_courses_from_codes
@@ -37,41 +33,27 @@ def test():
             break
 
 
-def testDB():
-    client = MongoClient('localhost', 27017)
-    db = client.testDB
-    collection = db.testCollection
-    collection.drop()
-
-    # doc = { 'name': 'world', 'action': 'hello' };
-    # collection.insert_one(doc)
-
-    courses = get_courses()
-    courses_json = list(map((lambda x: x.to_json()), courses))
-    collection.insert_many(courses_json)
-
-    pprint(db.collection_names(include_system_collections=False))
-    coursesccc = []
-    for x in collection.find({"au": {"$gt": 0}}):
-        print(x)
-        coursesccc.append(course_from_json(x))
-
-    course_string = '\n\nCourse: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n'.join(map((lambda x: str(x)), coursesccc))
-    print(course_string)
-
-
-def test_helper():
-    refresh_course(get_conf())
-
-
 def print_pretty(courses):
-    print('\n\nCourse: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n'.join(map((lambda x: str(x)), courses)))
+    print(reduce((lambda x, y: x + '\n\n' + y), (map((lambda x: str(x)), courses))))
 
 
 if __name__ == '__main__':
-    test_helper()
+    if False:
+        refresh_course(get_conf())
 
-    # test()
-    # codes = [ 'ce3007' ]
-    # courses = find_courses_from_codes(codes)
+    codes = [ 'CE3006', 'CE4011', 'CE4022', 'CE4023', 'CZ4042', 'CZ4031' ]
+    courses = find_courses_from_codes(codes)
+    print_pretty(courses)
 
+    for i in range(1, len(courses) + 1):
+        result = generate(courses, i)
+
+#
+# CE4011
+# CE4022
+# CE4023
+# CZ4042
+# CZ4031
+# HW0310
+# CE3006
+#

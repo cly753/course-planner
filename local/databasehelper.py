@@ -19,25 +19,18 @@ def refresh_course(conf):
     collection.drop()
     collection.insert_many(courses_json)
 
-    return True
+    return all_courses
 
 def find_courses_from_codes(course_codes):
-    # print('finding course codes...')
-    # pprint(course_codes)
-
     collection = get_collection()
 
     found = []
+    found_code = set()
     for code in course_codes:
-        course_json = collection.find_one({'course_code': code.upper()})
-
-        # print('code...' + code)
-        # print(course_json)
-        # pprint(course_json)
-
-        course = course_from_json(course_json)
-        # print(course.to_json())
-
-        found.append(course)
-
+        course_json = collection.find({'course_code': code.upper()})
+        for cj in course_json:
+            if not cj['course_code'] in found_code:
+                found_code.add(cj['course_code'])
+                course = course_from_json(cj)
+                found.append(course)
     return found
