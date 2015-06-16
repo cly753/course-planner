@@ -12,25 +12,11 @@ def get_conf():
         'course': 'https://wis.ntu.edu.sg/webexe/owa/AUS_SCHEDULE.main_display1'
     }
 
-def get_courses():
+def get_sample_courses():
     conf = get_conf()
     selected_semester = fetch_selected_semester(conf['semester'])
     programmes = fetch_programmes(conf['programme'])
     return fetch_courses(conf['course'], semester=selected_semester[1])
-
-
-def test():
-    courses = get_courses()
-    print_pretty(courses)
-
-    for i in range(1, len(courses) + 1):
-        print('generating {} courses... '.format(i), end='')
-        result = generate(courses, i)
-        print('{} results.'.format(len(result)))
-
-        if len(result) == 0:
-            print('no more plan...')
-            break
 
 
 def print_pretty(courses):
